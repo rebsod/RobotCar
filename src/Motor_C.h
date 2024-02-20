@@ -40,7 +40,7 @@ void MotorSpeed(int leftSpeed, int rightSpeed) {
 // Setup motor control pins for output and configure PWM
 void motors_init(void) {
     MOTORS_DDRx |= (1 << LEFT_MOTOR_PIN) | (1 << RIGHT_MOTOR_PIN); // Configure motor pins as output
-    TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM00) | (1 << WGM01); // Set PWM mode
+    TCCR0A |= (1 << COM0A1) | (1 << COM0B1) | (1 << WGM00) | (1 << WGM01); // Set PWM mode 
     initializePWM(); // Activate the PWM timer
 }
 
