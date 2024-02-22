@@ -62,3 +62,4 @@ uint8_t USART_Receive(void) {
 ISR(USART_RX_vect) {
     receivedCommand = UDR0;
 }
+

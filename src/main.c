@@ -25,33 +25,26 @@
 // defund trush hold value for the sensors
 
 
-// HIGH LEFT: 742
-// LOW LEFT: 312
-//527
-#define THRESHOLD_LEFT 527
-// HIGH CENTER: 651
-// LOW CENTER: 131
-//391
-#define THRESHOLD_CENTER 391
-// HIGH RIGHT: 614
-// LOW RIGHT: 62
-//338
-#define THRESHOLD_RIGHT 338 
-// HIGH M_RIGHT: 792
-// LOW M_RIGHT: 417
-//605
+
+#define THRESHOLD_LEFT 550
+#define THRESHOLD_CENTER 500
+#define THRESHOLD_RIGHT 450
 #define THRESHOLD_MR 605
-// HIGH L_RIGHT: 775
-// LOW L_RIGHT: 280
-//527 
 #define THRESHOLD_ML 527
 
+// loop cheker 
+int count = 0;
+bool CenterWhite = false;
+bool CenterBlack = false;
 
 // Function prototypes
-// void getSensorsValues(uint16_t* sensorValues);
 void getSensorsValues(uint16_t* sensorValues, uint16_t* HIGHsensorValues, uint16_t* LOWsensorValues);
-// void getbluetoothCommand();
-void followLine(uint16_t* sensorValues);
+void getbluetoothCommand();
+void trackfollowing(uint16_t* sensorValues);
+void printSensorValue(uint16_t* sensorValues);
+void printSensorValueHighLow(uint16_t* HIGHsensorValues, uint16_t* LOWsensorValues);
+void loopcount(uint16_t* sensorValues, int numofcount);
+// int ultrasonic();
 
 
 
@@ -62,32 +55,20 @@ int main(void) {
   adc_init(); // Initialize ADC for sensor readings
   ultrasonic_init(); // Initialize ultrasonic sensor
   sei(); // Enable global interrupts
+
   // decler sensor values as array 
   uint16_t sensorValues[6];
   uint16_t HIGHsensorValues[6] = { 0,0,0,0,0,0 };
   uint16_t LOWsensorValues[6] = { 1023,1023,1023,1023,1023,1023 };
 
 
-
-
-
-
-  // MotorSpeed(50, 50);
+  // MotorSpeed(100, 100);
   while (1) {
 
     getbluetoothCommand(); // Check for received commands
+    loopcount(sensorValues, 2); // loop count sensor values and number of loops to stop the robot
     getSensorsValues(sensorValues, HIGHsensorValues, LOWsensorValues); // Read sensor values
-    // followLine(sensorValues);// Follow the line based on sensor values
-    // MotorSpeed(90, 0);
-    // debug the ultrasonic sensor
-    // trigger_pulse();  // Trigger the ultrasonic pulse
-    // _delay_ms(500);  // Wait for the echo to return
 
-    // float distance = calculate_distance();  // Calculate the distance
-    // USART_SendString("\n\nDistance: ");  // Send the distance message
-    // USART_Send16BitNumber((uint16_t)distance);  // Send the distance value
-
-    // _delay_ms(1000);  // Wait before the next measurement
 
   }
 }
@@ -100,101 +81,25 @@ void getSensorsValues(uint16_t* sensorValues, uint16_t* HIGHsensorValues, uint16
   sensorValues[4] = read_adc(sensor_LR); // Read the ADC value for right sensor
 
 
-  //cheek if read value is higher than the high value
-  if (sensorValues[0] > HIGHsensorValues[0]) {
-    HIGHsensorValues[0] = sensorValues[0];
+  for (int i = 0; i < 5; i++) {
+    //cheek if read value is higher than the high value
+    if (sensorValues[i] > HIGHsensorValues[i]) {
+      HIGHsensorValues[i] = sensorValues[i];
+    }
+    //cheek if read value is lower than the low value
+    if (sensorValues[i] < LOWsensorValues[i]) {
+      LOWsensorValues[i] = sensorValues[i];
+    }
+
   }
-  //cheek if read value is lower than the low value
-  if (sensorValues[0] < LOWsensorValues[0]) {
-    LOWsensorValues[0] = sensorValues[0];
-  }
-  //cheek if read value is higher than the high value
-  if (sensorValues[1] > HIGHsensorValues[1]) {
-    HIGHsensorValues[1] = sensorValues[1];
-  }
-  //cheek if read value is lower than the low value
-  if (sensorValues[1] < LOWsensorValues[1]) {
-    LOWsensorValues[1] = sensorValues[1];
-  }
-  //cheek if read value is higher than the high value
-  if (sensorValues[2] > HIGHsensorValues[2]) {
-    HIGHsensorValues[2] = sensorValues[2];
-  }
-  //cheek if read value is lower than the low value
-  if (sensorValues[2] < LOWsensorValues[2]) {
-    LOWsensorValues[2] = sensorValues[2];
-  }
-  //cheek if read value is higher than the high value
-  if (sensorValues[3] > HIGHsensorValues[3]) {
-    HIGHsensorValues[3] = sensorValues[3];
-  }
-  //cheek if read value is lower than the low value
-  if (sensorValues[3] < LOWsensorValues[3]) {
-    LOWsensorValues[3] = sensorValues[3];
-  }
-  //cheek if read value is higher than the high value
-  if (sensorValues[4] > HIGHsensorValues[4]) {
-    HIGHsensorValues[4] = sensorValues[4];
-  }
-  //cheek if read value is lower than the low value
-  if (sensorValues[4] < LOWsensorValues[4]) {
-    LOWsensorValues[4] = sensorValues[4];
-  }
-
-
-
-  // Debugging the sensor values
-
-  // print the high and low values
-  USART_SendString("\n\nHIGH LEFT: "); // Send the left string
-  USART_Send16BitNumber(sensorValues[0]); // Send the left sensor value
-
-  USART_SendString("\n CENTER: "); // Send the center string
-  USART_Send16BitNumber(sensorValues[1]); // Send the center sensor value
-
-  USART_SendString("\n RIGHT: "); // Send the right string
-  USART_Send16BitNumber(sensorValues[2]); // Send the right sensor value
-
-  USART_SendString("\n M_RIGHT: "); // Send the right string
-  USART_Send16BitNumber(sensorValues[3]); // Send the right sensor value
-
-  USART_SendString("\n L_RIGHT: "); // Send the right string
-  USART_Send16BitNumber(sensorValues[4]); // Send the right sensor value
-
-  // print the high and low values
-  // USART_SendString("\n\nHIGH LEFT: "); // Send the left string
-  // USART_Send16BitNumber(HIGHsensorValues[0]); // Send the left sensor value
-  // USART_SendString("\nLOW LEFT: "); // Send the right string
-  // USART_Send16BitNumber(LOWsensorValues[0]); // Send the right sensor value
-
-  // USART_SendString("\nHIGH CENTER: "); // Send the center string
-  // USART_Send16BitNumber(HIGHsensorValues[1]); // Send the center sensor value
-  // USART_SendString("\nLOW CENTER: "); // Send the right string
-  // USART_Send16BitNumber(LOWsensorValues[1]); // Send the right sensor value
-
-
-  // USART_SendString("\nHIGH RIGHT: "); // Send the right string
-  // USART_Send16BitNumber(HIGHsensorValues[2]); // Send the right sensor value
-  // USART_SendString("\nLOW RIGHT: "); // Send the right string
-  // USART_Send16BitNumber(LOWsensorValues[2]); // Send the right sensor value
-
-  // USART_SendString("\nHIGH M_RIGHT: "); // Send the right string
-  // USART_Send16BitNumber(HIGHsensorValues[3]); // Send the right sensor value
-  // USART_SendString("\nLOW M_RIGHT: "); // Send the right string
-  // USART_Send16BitNumber(LOWsensorValues[3]); // Send the right sensor value
-
-  // USART_SendString("\nHIGH L_RIGHT: "); // Send the right string
-  // USART_Send16BitNumber(HIGHsensorValues[4]); // Send the right sensor value
-  // USART_SendString("\nLOW L_RIGHT: "); // Send the right string
-  // USART_Send16BitNumber(LOWsensorValues[4]); // Send the right sensor value
-
   // delay for 1 second
-  _delay_ms(100);
+  _delay_ms(50);
 }
 
 void getbluetoothCommand() {
   // Check the received command and act accordingly
   if (receivedCommand == START) {
+    count = 0;
     MotorSpeed(50, 50); // Set motors to full speed
     receivedCommand = 0; // Reset command to avoid repeated execution
   }
@@ -214,35 +119,116 @@ void getbluetoothCommand() {
   }
 }
 
-void followLine(uint16_t* sensorValues) {
+void trackfollowing(uint16_t* sensorValues) {
+  int leftSpeed = 90;
+  int rightSpeed = 90;
+  int stopMootor = 0;
+
+
   // Assuming sensorValues[0] is left, sensorValues[1] is center, sensorValues[2] is right sensorValues[3]
   // is MR and sensorValues[4] LR
 
-
-  if (sensorValues[2] > (THRESHOLD_RIGHT + 35)) {
-    MotorSpeed(00, 80);
+  if (sensorValues[2] > THRESHOLD_RIGHT) {
+    leftSpeed = stopMootor;
   }
-
-  else if (sensorValues[3] > (THRESHOLD_MR + 35)) {
-    MotorSpeed(0, 80);
-  }
-
-
-  else if (sensorValues[0] < (THRESHOLD_LEFT + 35)) {
-    MotorSpeed(80, 0);
-  }
-
-  else if (sensorValues[4] < (THRESHOLD_ML + 35)) {
-    MotorSpeed(80, 0);
-  }
-  else
-  {
-    MotorSpeed(80, 80);
+  else {
+    leftSpeed = leftSpeed;
   }
 
 
+  if (sensorValues[0] < THRESHOLD_RIGHT) {
+    rightSpeed = stopMootor;
+  }
+  else {
+    rightSpeed = rightSpeed;
+  }
 
-
+  MotorSpeed(leftSpeed, rightSpeed); // Set the motor speeds
 }
 
 
+
+
+void PrintSensorValue(uint16_t* sensorValues) {
+
+  // Debugging the sensor values
+  USART_SendString("\n\nLEFT: "); // Send the left string
+  USART_Send16BitNumber(sensorValues[0]); // Send the left sensor value
+
+  USART_SendString("\n CENTER: "); // Send the center string
+  USART_Send16BitNumber(sensorValues[1]); // Send the center sensor value
+
+  USART_SendString("\n RIGHT: "); // Send the right string
+  USART_Send16BitNumber(sensorValues[2]); // Send the right sensor value
+
+  USART_SendString("\n M_RIGHT: "); // Send the right string
+  USART_Send16BitNumber(sensorValues[3]); // Send the right sensor value
+
+  USART_SendString("\n L_RIGHT: "); // Send the right string
+  USART_Send16BitNumber(sensorValues[4]); // Send the right sensor value
+}
+
+void PrintSensorValueHighLow(uint16_t* HIGHsensorValues, uint16_t* LOWsensorValues) {
+
+  // print the high and low values
+  USART_SendString("\n\nHIGH LEFT: "); // Send the left string
+  USART_Send16BitNumber(HIGHsensorValues[0]); // Send the left sensor value
+  USART_SendString("\nLOW LEFT: "); // Send the right string
+  USART_Send16BitNumber(LOWsensorValues[0]); // Send the right sensor value
+
+  USART_SendString("\nHIGH CENTER: "); // Send the center string
+  USART_Send16BitNumber(HIGHsensorValues[1]); // Send the center sensor value
+  USART_SendString("\nLOW CENTER: "); // Send the right string
+  USART_Send16BitNumber(LOWsensorValues[1]); // Send the right sensor value
+
+  USART_SendString("\nHIGH RIGHT: "); // Send the center string
+  USART_Send16BitNumber(HIGHsensorValues[2]); // Send the center sensor value
+  USART_SendString("\nLOW RIGHT: "); // Send the right string
+  USART_Send16BitNumber(LOWsensorValues[2]); // Send the right sensor value
+
+  USART_SendString("\nHIGH M_RIGHT: "); // Send the middel  string 
+  USART_Send16BitNumber(HIGHsensorValues[3]); // Send the center sensor value
+  USART_SendString("\nLOW M_RIGHT: "); // Send the right string
+  USART_Send16BitNumber(LOWsensorValues[3]); // Send the right sensor value
+
+  USART_SendString("\n\nHIGH M_LEFT: "); // Send the M_left string
+  USART_Send16BitNumber(HIGHsensorValues[4]); // Send the M_left sensor value
+  USART_SendString("\nLOW M_LEFT: "); // Send the M_right string
+  USART_Send16BitNumber(LOWsensorValues[4]); // Send the right sensor value
+}
+
+void loopcount(uint16_t* sensorValues, int numofcount) {
+  // loop count
+  if (sensorValues[1] > 780) {
+    CenterWhite = true;
+    // USART_Send16BitNumber(sensorValues[1]);
+  }
+  if (sensorValues[1] < 240) {
+    CenterBlack = true;
+    // USART_Send16BitNumber(sensorValues[1]);
+  }
+
+  if (CenterWhite && CenterBlack) {
+    count++;
+    CenterWhite = false;
+    CenterBlack = false;
+    // USART_Send16BitNumber(count);
+  }
+
+  numofcount = numofcount * 2;
+  if (count >= numofcount) { // use duble the loob count to stop the robot
+    MotorSpeed(0, 0);
+  }
+}
+
+// int ultrasonic(){
+//     // debug the ultrasonic sensor
+//     // trigger_pulse();  // Trigger the ultrasonic pulse
+//     // _delay_ms(500);  // Wait for the echo to return
+
+//     // float distance = calculate_distance();  // Calculate the distance
+//     // USART_SendString("\n\nDistance: ");  // Send the distance message
+//     // USART_Send16BitNumber((uint16_t)distance);  // Send the distance value
+//     return 0
+//     // _delay_ms(1000);  // Wait before the next measurement
+// }
