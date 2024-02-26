@@ -44,7 +44,7 @@ void adc_init() {
     ADCSRA = (1 << ADEN); // Enable the ADC
     ADMUX = (1 << AREF); // Set reference voltage to AVCC
 
-    // Disable digital input buffers on ADC0-ADC7 to save power
+    // Disable digital input buffers on ADC0-ADC5 to save power
     DIDR0 |= (1 << ADC0D) | (1 << ADC1D) | (1 << ADC3D) | (1 << ADC4D) | (1 << ADC5D);
     set_prescaler(); // Set the prescaler value for the ADC
 }

@@ -101,5 +101,5 @@ void getSensorsValues(uint16_t* sensorValues, uint16_t* HIGHsensorValues, uint16
     // USART_Send16BitNumber(LOWsensorValues[4]); // Send the right sensor value
 
     // delay for 1 second
-    _delay_ms(50);
+    // _delay_ms(50);
 }
