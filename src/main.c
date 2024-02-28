@@ -45,6 +45,9 @@
 #define motor_speed 50
 #define motor_speed_At_turn 30
 
+bool startDriving = false;
+
+
 
 
 // loop cheker 
@@ -56,7 +59,7 @@ bool CenterBlack = false;
 void getSensorsValues(uint16_t* sensorValues, uint16_t* HIGHsensorValues, uint16_t* LOWsensorValues);
 void getbluetoothCommand();
 void trackfollowing(uint16_t* sensorValues);
-void printSensorValue(uint16_t* sensorValues);
+void PrintSensorValue(uint16_t* sensorValues);
 void PrintSensorValueHighLow(uint16_t* HIGHsensorValues, uint16_t* LOWsensorValues);
 void loopcount(uint16_t* sensorValues, int numofcount);
 float ultrasonic();
@@ -78,26 +81,29 @@ int main(void) {
 
   while (1) {
 
-    int distance = ultrasonic(); // debug the ultrasonic sensor
+    // int distance = ultrasonic(); // debug the ultrasonic sensor
 
-    USART_SendString("\n\nDistance: "); // Send the distance message
-    USART_Send16BitNumber((uint16_t)distance); // Send the distance value
+    // USART_SendString("\n\nDistance: "); // Send the distance message
+    // USART_Send16BitNumber((uint16_t)distance); // Send the distance value
 
-    if (distance < 50) {
-      MotorSpeed(0, 0);
+    // if (distance < 50) {
+    //   MotorSpeed(0, 0);
+    // }
+    // else {
+    //   MotorSpeed(motor_speed, motor_speed);
+    // }
+
+
+    // getbluetoothCommand(); // Check for received commands
+    getSensorsValues(sensorValues, HIGHsensorValues, LOWsensorValues); // Read sensor values
+    PrintSensorValue(sensorValues); // Print sensor values
+    if (startDriving) {
+      trackfollowing(sensorValues); // Track following algorithm
     }
-    else {
-      MotorSpeed(motor_speed, motor_speed);
-    }
+
+    // trackfollowing(sensorValues); // Track following algorithm
 
 
-    getbluetoothCommand(); // Check for received commands
-
-
-
-
-
-    // getSensorsValues(sensorValues, HIGHsensorValues, LOWsensorValues); // Read sensor values
     // loopcount(sensorValues, 1); // loop count
 
     // PrintSensorValueHighLow(HIGHsensorValues, LOWsensorValues); // Print the high and low values
@@ -143,6 +149,8 @@ void getbluetoothCommand() {
   if (receivedCommand == START) {
     count = 0;
     MotorSpeed(motor_speed, motor_speed); // Set motors to full speed
+    startDriving = true;
+
     receivedCommand = 0; // Reset command to avoid repeated execution
   }
   else if (receivedCommand == STOP_AND_GO) {
@@ -154,8 +162,10 @@ void getbluetoothCommand() {
   else if (receivedCommand == STOP) {
     MotorSpeed(0, 0); // Stop motors
     receivedCommand = 0; // Reset command
+    startDriving = false;
     // wait antil the command is changed
     while (receivedCommand != START) {
+
     }
 
   }
