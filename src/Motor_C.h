@@ -20,7 +20,7 @@
 
 // Initialize and start the PWM timer
 void initializePWM(void) {
-    TCCR0B &= ~((1 << CS02) | (1 << CS01) | (1 << CS00)); // Clear previous settings
+    TCCR0B &= ~((1 << CS02) | (1 << CS01) | (1 << CS00)); // Clear previous settings // with timer 0
     if (PRESCALER == 8) TCCR0B |= (1 << CS01);
     else if (PRESCALER == 64) TCCR0B |= (1 << CS01) | (1 << CS00);
     else if (PRESCALER == 256) TCCR0B |= (1 << CS02);

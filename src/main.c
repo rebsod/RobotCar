@@ -42,10 +42,12 @@
 #endif
 
 
-#define motor_speed 50
-#define motor_speed_At_turn 30
+#define motor_speed 90
+#define motor_speed_At_turn 70
 
 bool startDriving = false;
+
+#define distance pulse_width
 
 
 
@@ -81,36 +83,31 @@ int main(void) {
 
   while (1) {
 
-    // int distance = ultrasonic(); // debug the ultrasonic sensor
-
+    // gte distance from the ultrasonic sensor
     // USART_SendString("\n\nDistance: "); // Send the distance message
-    // USART_Send16BitNumber((uint16_t)distance); // Send the distance value
-
-    // if (distance < 50) {
-    //   MotorSpeed(0, 0);
-    // }
-    // else {
-    //   MotorSpeed(motor_speed, motor_speed);
-    // }
+    // USART_Send16BitNumber(distance); // Send the distance value
+    // _delay_ms(1000); // Wait for 1 second
 
 
-    // getbluetoothCommand(); // Check for received commands
+    if (distance < 10) {
+      MotorSpeed(0, 0);
+    }
+
+
+    getbluetoothCommand(); // Check for received commands
     getSensorsValues(sensorValues, HIGHsensorValues, LOWsensorValues); // Read sensor values
-    PrintSensorValue(sensorValues); // Print sensor values
+    // // PrintSensorValue(sensorValues); // Print sensor values
     if (startDriving) {
       trackfollowing(sensorValues); // Track following algorithm
     }
 
-    // trackfollowing(sensorValues); // Track following algorithm
-
-
-    // loopcount(sensorValues, 1); // loop count
+    loopcount(sensorValues, 1); // loop count
 
     // PrintSensorValueHighLow(HIGHsensorValues, LOWsensorValues); // Print the high and low values
     // trackfollowing(sensorValues); // Track following algorithm
     // printSensorValue(sensorValues); // Print sensor values
 
-    // int distance = ultrasonic();
+
 
     // if (distance < 10) {
     //   MotorSpeed(0, 0);
@@ -187,13 +184,6 @@ void trackfollowing(uint16_t* sensorValues) {
   // Assuming sensorValues[0] is left, sensorValues[1] is center, sensorValues[2] is right sensorValues[3]
   // is MR and sensorValues[4] LR
 
-  if (Middle_Right < THRESHOLD_RIGHT) {
-    leftSpeed = motor_speed_At_turn;
-  }
-  else {
-    leftSpeed = motor_speed;
-  }
-
 
   if (right < THRESHOLD_RIGHT) {
     leftSpeed = stopMootor;
@@ -202,13 +192,6 @@ void trackfollowing(uint16_t* sensorValues) {
     leftSpeed = motor_speed;
   }
 
-
-  if (middle_left > THRESHOLD_LEFT) {
-    leftSpeed = motor_speed_At_turn;
-  }
-  else {
-    leftSpeed = motor_speed;
-  }
 
   if (left > THRESHOLD_RIGHT) {
     rightSpeed = stopMootor;
@@ -219,9 +202,25 @@ void trackfollowing(uint16_t* sensorValues) {
 
 
 
+  // if (middle_left > THRESHOLD_LEFT) {
+  //   leftSpeed = motor_speed_At_turn;
+  // }
+  // else {
+  //   leftSpeed = motor_speed;
+  // }
+
+
+
+  // if (Middle_Right < THRESHOLD_RIGHT) {
+  //   leftSpeed = motor_speed_At_turn;
+  // }
+  // else {
+  //   leftSpeed = motor_speed;
+  // }
+
+
   MotorSpeed(leftSpeed, rightSpeed); // Set the motor speeds
 }
-
 
 void PrintSensorValue(uint16_t* sensorValues) {
 
@@ -316,15 +315,3 @@ void loopcount(uint16_t* sensorValues, int numofcount) {
 }
 
 
-float ultrasonic() {
-  // debug the ultrasonic sensor
-  trigger_pulse();  // Trigger the ultrasonic pulse
-  _delay_ms(500);  // Wait for the echo to return 
-
-  float distance = calculate_distance();  // Calculate the distance
-  // USART_SendString("\n\nDistance: ");  // Send the distance message
-  // USART_Send16BitNumber((uint16_t)distance);  // Send the distance value
-  // return 0
-  // _delay_ms(1000);  // Wait before the next measurement
-  return (distance / 100);
-}

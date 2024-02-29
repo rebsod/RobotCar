@@ -2,72 +2,64 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-// Define pins for trigger and echo
 #define TRIGGER_DDR DDRB
 #define TRIGGER_PORT PORTB
-#define TRIGGER_PIN 4  // Pin 13 on AVR, PB5
+#define TRIGGER_PIN 4
+#define TRIGGER_FREQUENCY 10 // Manual trigger delay between Trigger HIGH and LOW.
+
 #define ECHO_DDR DDRB
-#define ECHO_PIN 5     // Pin 12 on AVR, PB4
+#define ECHO_PORT PORTB
+#define ECHO_PIN 5
+#define ECHO_PCINT PCINT5
+#define ECHO_PCICR_BIT PCIE0
+#define ECHO_PCMSK PCMSK0
+#define ECHO_PCINT_vect PCINT0_vect
 
-// Timer settings - using 1024 prescaler
-#define TIMER_PRESCALER 1024UL
-#define CLOCK_FREQUENCY 16000000UL  // 16 MHz
+#define TIMER2_PRESCALER_BITS ((1 << CS22) | (1 << CS21) | (1 << CS20)) // 1024 prescaler
+#define TIMER2_OVERFLOW 10
 
-volatile uint16_t pulse_width = 0;
+volatile uint16_t pulse_width = 0; // Stores the time taken to reach the receiver.
+volatile uint8_t i = 0;
 
 void ultrasonic_init() {
-    // Set trigger pin as output
+    // Set Trigger pin as OUTPUT, and ECHO pin as INPUT.
     TRIGGER_DDR |= (1 << TRIGGER_PIN);
-
-    // Set echo pin as input
     ECHO_DDR &= ~(1 << ECHO_PIN);
 
-    // Enable pin change interrupt on echo pin
-    PCICR |= (1 << PCIE0);
-    PCMSK0 |= (1 << ECHO_PIN);
+    // Enable pin change interrupt for the echo pin.
+    PCICR |= (1 << ECHO_PCICR_BIT);
+    ECHO_PCMSK |= (1 << ECHO_PCINT);
 
-    // Enable global interrupts
+    // Enable global interrupts.
     sei();
 
-    // Configure Timer1
-    TCCR1B |= (1 << CS10) | (1 << CS12);  // Prescaler 1024
+    // Configure Timer2 for CTC mode with OCR2A as the top value.
+    OCR2A = 255;
+    TIMSK2 |= (1 << OCIE2A); // Enable CTC interrupt
+    TCCR2A |= (1 << WGM21);  // CTC mode
+    TCCR2B |= TIMER2_PRESCALER_BITS; // Set prescaler
 }
 
-void trigger_pulse() {
-    // Generate trigger pulse
+void trigger() {
     TRIGGER_PORT |= (1 << TRIGGER_PIN);
-    _delay_us(10);
+    _delay_ms(TRIGGER_FREQUENCY);
     TRIGGER_PORT &= ~(1 << TRIGGER_PIN);
 }
 
-ISR(PCINT0_vect) {
-    static uint16_t rising_edge_time = 0;
-
-    // Check if echo pin is high
-    if (PINB & (1 << ECHO_PIN)) {
-        rising_edge_time = TCNT1;  // Capture time at rising edge
+ISR(ECHO_PCINT_vect) {
+    if (!(ECHO_PORT & (1 << ECHO_PIN))) { // ECHO pin goes LOW
+        pulse_width = TCNT2; // Read Timer2 value
+        // Additional conditions or actions can be added here
     }
-    else {
-        uint16_t falling_edge_time = TCNT1;  // Capture time at falling edge
-        pulse_width = falling_edge_time - rising_edge_time;
+    TCNT2 = 0; // Reset Timer2
+}
+// Timer2 CTC interrupt handler to trigger the ultrasonic sensor.
+ISR(TIMER2_COMPA_vect) {
+    i = (i >= TIMER2_OVERFLOW) ? 0 : i + 1;
+    if (i == 0) {
+        TRIGGER_PORT |= (1 << TRIGGER_PIN); // Set Trigger HIGH
+    }
+    else if (i == TIMER2_OVERFLOW) {
+        TRIGGER_PORT &= ~(1 << TRIGGER_PIN); // Set Trigger LOW
     }
 }
-
-// Function to calculate distance in cm
-float calculate_distance() {
-    // Time in seconds = number of ticks * prescaler / clock frequency
-    float time_seconds = pulse_width * (float)TIMER_PRESCALER / CLOCK_FREQUENCY;
-
-    // Distance = speed of sound in cm/s * time / 2
-    // Speed of sound = 34300 cm/s at room temperature
-    float distance_cm = (time_seconds * 34300) / 2;
-    // conver to int
-    return distance_cm;
-}
-
-
-
-
-
-
-
