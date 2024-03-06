@@ -42,8 +42,8 @@
 #endif
 
 
-#define motor_speed 90
-#define motor_speed_At_turn 70
+#define motor_speed 75
+#define motor_speed_At_turn 55
 
 bool startDriving = false;
 
@@ -89,19 +89,26 @@ int main(void) {
     // _delay_ms(1000); // Wait for 1 second
 
 
-    if (distance < 10) {
-      MotorSpeed(0, 0);
-    }
+    // if (distance < 10) {
+    //   MotorSpeed(0, 0);
+    // }
 
 
     getbluetoothCommand(); // Check for received commands
     getSensorsValues(sensorValues, HIGHsensorValues, LOWsensorValues); // Read sensor values
-    // // PrintSensorValue(sensorValues); // Print sensor values
+
+
+    // PrintSensorValue(sensorValues); // Print sensor values
+    // delay(1000);
+
+
     if (startDriving) {
-      trackfollowing(sensorValues); // Track following algorithm
+      trackfollowing(sensorValues); // Track following algorithm٠
+      // PrintSensorValue(sensorValues); // Print sensor values
+      // delay(1000);
     }
 
-    loopcount(sensorValues, 1); // loop count
+    // loopcount(sensorValues, 1); // loop count
 
     // PrintSensorValueHighLow(HIGHsensorValues, LOWsensorValues); // Print the high and low values
     // trackfollowing(sensorValues); // Track following algorithm
@@ -145,7 +152,7 @@ void getbluetoothCommand() {
   // Check the received command and act accordingly
   if (receivedCommand == START) {
     count = 0;
-    MotorSpeed(motor_speed, motor_speed); // Set motors to full speed
+    // MotorSpeed(motor_speed, motor_speed); // Set motors to full speed
     startDriving = true;
 
     receivedCommand = 0; // Reset command to avoid repeated execution
@@ -185,7 +192,7 @@ void trackfollowing(uint16_t* sensorValues) {
   // is MR and sensorValues[4] LR
 
 
-  if (right < THRESHOLD_RIGHT) {
+  if (right > THRESHOLD_RIGHT) {
     leftSpeed = stopMootor;
   }
   else {
@@ -193,11 +200,11 @@ void trackfollowing(uint16_t* sensorValues) {
   }
 
 
-  if (left > THRESHOLD_RIGHT) {
+  if (left < THRESHOLD_LEFT) {
     rightSpeed = stopMootor;
   }
   else {
-    rightSpeed = rightSpeed;
+    rightSpeed = motor_speed;
   }
 
 
